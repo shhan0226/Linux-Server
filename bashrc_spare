@@ -1,0 +1,20 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# User specific aliases and functions
+
+#PATH=$PATH:/data/bin/blast/bin
+#export PATH
+
+
+#-- user Fasta -----#
+#export PATH="$PATH:/data/users/classic226/research/Fasta/fasta-36.3.6d/bin"
+
+#-- user Blast -----#
+#export PATH="$PATH:/data/users/classic226/research/Blast/ncbi-blast-2.2.29+/bin"
+export PATH="$PATH:/raid/classic226/blast-2.2.26/bin"
+#export BLASTDB="$PATH:/data/users/classic226/research/Blast/ncbi-blast-2.2.29+/db"
