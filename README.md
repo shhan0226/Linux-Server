@@ -1,7 +1,7 @@
 # Linux-Server
 
 ## Introduction
-리눅스 서버에서의 다양한 기능을 구현
+리눅스 서버에서 다양한 기능을 구현
 
 ## Program
 
