@@ -1,0 +1,161 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+TURNIN_CONFIGURE_PATH = "/data/turnin/turnin.conf"
+
+import sys
+import os
+import commands
+import time
+import datetime
+
+
+def CHECK_DUE(due):
+
+	due_date = due[0].strip().split("-")
+	due_time = due[1].strip().split(":")
+	
+	t1 = datetime.datetime.now()
+	t2 = datetime.datetime(int(due_date[0]), int(due_date[1]), int(due_date[2]), int(due_time[0]), int(due_time[1]), int(due_time[2]))
+	diff = t2 - t1
+	
+	if diff.days < 0:
+		return -1
+
+	return 1
+
+
+def STD_INFO(class_info, user_dir):
+	
+	if CHECK_DUE(class_info[2:4]) != 1:
+		print "\nError : 과제 제출이 이미 종료되었습니다.\n\n"
+		sys.exit()
+	
+	print ""
+	
+	cmd = "whoami"
+	cmd_out = commands.getoutput(cmd)
+	cmd = "finger -s "+cmd_out+" | tail -n 1"
+	#cmd_out = commands.getoutput(cmd)
+	name =  cmd_out.strip() #split()[0].strip() #cmd_out.split("\n")[0].strip().split("Name:")[1].strip().replace(" ","_")
+	user_dir = user_dir.replace(" ","\ ")
+	cmd = "cd "+user_dir+"; ls | grep  '.*\.\(c\|cpp\)$'"
+	cmd_out = commands.getoutput(cmd)
+	c_files = " ".join(cmd_out.strip().split())
+
+	#s_id = raw_input("학번 : ").replace(' ','').strip()
+
+	print ""
+	print "---------------------------------------------------------"
+	print " 과목명   : %s " % class_info[0]
+	print " 담당교수 : %s " % class_info[1]
+	print " 제출자   : %s " % name
+	#print " 학번    : %s " % s_id
+	print " 제출할 디렉토리 : %s" % user_dir
+	print " 제출 파일 : %s" % c_files
+	print "---------------------------------------------------------"
+	print ""
+	choice = raw_input("제출하겠습니까? (y/N) : ")
+
+	if choice.lower().strip() != "y":
+		print "종료합니다..."
+		sys.exit()
+
+	print "\n제출중입니다..."
+	print "" 
+	user_dir = os.path.abspath(user_dir)
+
+	#name = unicode( name, "utf-8" )
+	server_dir = os.path.abspath(class_info[4])+"/"+name #+"_"+s_id
+
+	if not os.path.exists(server_dir):
+		os.mkdir(server_dir)
+	else:
+		cmd = "rm -rf "+server_dir+"/*"
+		cmd_out = commands.getoutput(cmd)
+
+	#cmd = "a2ps --line-number=1 --prologue=color "+user_dir+"/*.c* -o "+user_dir+"/hw.ps"
+	cmd = "enscript -2rj --header='["+class_info[0]+"] %n : $n|%W %C|$%/$=' --word-wrap --line-numbers --highlight=cpp --color=1 -o "+user_dir+"/hw.ps "+user_dir+"/*.c "+user_dir+"/*.cpp"
+	cmd_out = commands.getoutput(cmd)
+	cmd = "ps2pdf "+user_dir+"/hw.ps "+user_dir+"/hw.pdf"
+	cmd_out = commands.getoutput(cmd)
+	cmd = "rm -rf "+user_dir+"/hw.ps "
+	cmd_out = commands.getoutput(cmd)
+	
+	cmd = "cp "+user_dir+"/*.c "+user_dir+"/*.cpp "+server_dir
+	cmd_out = commands.getoutput(cmd)
+	cmd = "cp "+user_dir+"/hw.pdf "+server_dir
+	cmd_out = commands.getoutput(cmd)
+
+	cmd = "chmod 700 -R "+server_dir
+	cmd_out = commands.getoutput(cmd)
+
+	print "성공적으로 제출하였습니다.\n\n"
+
+
+def COURSE_SELECTION():
+
+	class_info = {}
+	fp  = open(TURNIN_CONFIGURE_PATH, "r")
+	idx = 1
+
+	cmd = "date"
+	cmd_out = commands.getoutput(cmd)
+	print "서버시간: "+cmd_out
+	print "---------------------------------------------------------"
+	print " 번호 : 교과목\t\t담당교수\t마감일\t마감시간"
+	print "---------------------------------------------------------"
+	
+	for lineStr in fp:
+		if lineStr.strip() == "" :
+			continue
+		if lineStr.strip()[0] == '#':
+			continue
+		tmp_arr = lineStr.strip().split("\t")
+
+		if CHECK_DUE(tmp_arr[2:4]) == -1 :
+			continue
+	
+		class_info[idx] = tmp_arr
+		print " %-3s" % str(idx),
+		print " : "+"\t".join(tmp_arr[:-1])
+		idx += 1
+	fp.close()
+
+	if idx == 1:
+		print "\n * 현재 등록된 과목이 없습니다.\n"
+		print "---------------------------------------------------------"
+		sys.exit()
+			
+	print "---------------------------------------------------------"
+	
+	try:
+		course = int(raw_input(" 과목을 선택 하세요 : ").strip())
+	except:
+		print " Error : 올바른 번호를 입력하세요.\n"
+		sys.exit()
+
+	if not ( course > 0 and course < idx):
+		print " Error : 과목 번호 범위를 벗어났습니다.\n"
+		sys.exit()
+
+	return class_info[course]
+
+	
+if __name__ == '__main__':
+
+
+	if len(sys.argv) != 2 :
+		cur_dir = os.getcwd()
+		#print "\nUsage : turnin [directory name to submit]\n\n "
+		#sys.exit()
+	else:
+		cur_dir = sys.argv[1]
+
+	if not os.path.exists(cur_dir):
+		print "\nError : 제출할 디렉토리 '"+cur_dir+"'가 존재하지 않습니다. 다시 확인하세요!\n"
+		sys.exit()
+
+	class_info = COURSE_SELECTION()
+	STD_INFO(class_info, cur_dir)
+
