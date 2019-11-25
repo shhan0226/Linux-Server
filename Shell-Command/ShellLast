@@ -1,0 +1,84 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+# 작성자 : 한석현
+
+import sys
+import os
+import commands
+
+
+deny_users = { 'reboot', 'root' }
+used_users = {}
+user_count = {}
+
+domain_names = {}
+
+dept_ip  = "114.71.70."
+
+def U_COUNT(str):
+	if user_count.get(str) >= 1:
+		user_count[str] += 1
+		return user_count
+	else:
+		user_count[str] = 1
+		return user_count
+
+def U_COUNT_P():
+	for key in user_count:
+		print key, '\t', user_count[key]
+#                print key+user_count[key]+"\t".join(tmp_arr[2:])
+
+def IP_TO_DOMAIN(ip):
+	
+	if ip in domain_names:
+		return domain_names[ip]
+	else:
+		domain = ip
+		first_digit = domain.split(".")[0].strip()
+		if first_digit.isdigit() and ip[:len(dept_ip)] == dept_ip :
+			f = os.popen("host "+ip)
+			domain = f.readline().split()[-1].strip()[:-len("a.cs.gwnu.ac.kr")]
+			if domain.strip() != "" :
+				domain_names[domain] = 1
+				domain = domain + ".cs"
+			else:
+				domain = ip
+		else:
+			if ".a.cs.gwnu" in domain:
+				domain = domain.split(".")[0]+".cs"
+		return domain
+
+
+def check():
+        f = os.popen("/usr/bin/last.org -wF")
+#        print "[7;37m NAME      "+"USER\t\tFROM\t\tWEEK\tMONTH\tDAY\tTIME\t\tYEAR\t\tWEEK\tMONTH\tDAY\tTIME\t\tYEAR\t\t "+"[0m"
+        print "[7;37m USER      "+"CONNECTION\t\t "+"[0m"
+        for lineStr in f.readlines():
+                if len(lineStr) < 10:
+                        break
+                tmp_arr = lineStr.split()
+                user_id = (tmp_arr[0] + " " * 20)[:13]
+
+		U_COUNT(user_id)
+		if user_id.strip() in deny_users:
+			continue
+
+		if user_id.strip() in used_users:
+			han_name = used_users[user_id.strip()]
+		else:
+			han_name = (os.popen("adquery user --display "+user_id.strip()).readline().strip()+" "*20)[:14]
+			used_users[user_id.strip()] = han_name 
+
+		if "a.cs.gwnu.ac.kr" in tmp_arr[2] :
+			tmp_arr[2] = tmp_arr[2][:-len("a.cs.gwnu.ac.kr")-1]+".cs "
+		else:
+			tmp_arr[2] = IP_TO_DOMAIN(tmp_arr[2])
+
+#                print han_name+user_id+"\t".join(tmp_arr[2:])
+        f.close()
+
+if __name__ == '__main__':
+
+        check()
+	U_COUNT_P()
