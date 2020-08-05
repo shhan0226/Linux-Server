@@ -1,0 +1,23 @@
+ansible 설치
+
+ls -l /etc/yum.repos.d
+sudo yum install -y epel-release
+sudo yum install -y ansible
+
+ansible --version
+
+ssh-keygen
+ls -al ~/.ssh
+ssh-copy-id user@192.168.56.21
+ssh-copy-id user@192.168.56.22
+ssh-copy-id user@192.168.56.23
+
+ssh user@192.168.56.21 hostname
+
+sudo vi /etc/hosts
+>
+192.168.56.11   cnode   cnode.cccr.local
+192.168.56.21   host1   host1.cccr.local
+192.168.56.22   host2   host2.cccr.local
+192.168.56.23   host3   host3.cccr.local
+
