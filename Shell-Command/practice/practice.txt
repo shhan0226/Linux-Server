@@ -1,0 +1,223 @@
+1. 디렉토리 생성
+#!/bin/bash
+
+for i in {1..5}
+do
+        mkdir dir$i && echo "directory dir$i has been created"  
+
+        for j in {1..5}
+        do
+                mkdir dir$i/subdir$j && echo -e "\tsubdir subdir$j has bee created"
+        done
+done
+
+
+2. 계산기
+
+1) 입력받아 실행
+#!/bin/bash
+
+echo -n "Input num1 : "
+read NUM1
+echo -n "Input num2 : "
+read NUM2
+echo -n "Input operator 1)+ 2)- 3)* 4)/ : "
+read OPER
+
+case $OPER in
+1) echo "$NUM1 + $NUM2 = `expr $NUM1 + $NUM2`" ;;
+2) echo "$NUM1 - $NUM2 = `expr $NUM1 - $NUM2`" ;;
+3) echo "$NUM1 * $NUM2 = `expr $NUM1 \* $NUM2`" ;;
+4) echo -n "$NUM1 / $NUM2 = "; echo "scale=2;$NUM1/$NUM2" | bc ;;
+*) echo "OPERATOR MISSING"
+esac
+
+2) 위치매개변수 사용
+#!/bin/bash
+
+if [ $# -ne 3 ]
+then
+	echo "Please input 2 number and 1 operator"
+	exit 1
+fi
+
+case $2 in
+'+') echo "$1 + $3 = `expr $1 + $3`" ;;
+'-') echo "$1 - $3 = `expr $1 - $3`" ;;
+'*') echo "$1 * $3 = `expr $1 \* $3`" ;;
+'/') echo -n "$1 / $3 = "; echo "scale=2;$1/$3" | bc ;;
+*) echo "OPERATOR MISSING"
+esac
+
+3. 사용자 추가 프로그램
+#!/bin/bash
+
+echo -n "Enter basename: "
+read BASENAME
+echo -n "Enter start num : "
+read STARTNUM
+echo -n "Enter new user count : "
+read USERCNT
+
+for i in `seq 1 $USERCNT`
+do
+	NEWUSERNAME=$BASENAME$STARTNUM
+	useradd $NEWUSERNAME && echo "$NEWUSERNAME user create."
+	echo "P@ssw0rd" | passwd --stdin $NEWUSERNAME && echo "password is P@ssw0rd"
+	(( STARTNUM=STARTNUM+1 ))
+done
+
+4. 파일 체크 프로그램
+#!/bin/bash
+# testfile : test.txt
+# backup file : test.txt.bak
+
+if [ -f test.txt.bak  ]
+then
+	echo "Backup file exists..."
+else
+	cp test.txt test.txt.bak
+	echo "Backup file created..."
+	exit 0
+fi
+
+if [ -f test.txt ]
+then
+	if diff test.txt test.txt.bak 1> /dev/null 2>&1
+	then
+		echo "File check complete..."
+	else
+		echo "File changed..."
+		cp test.txt.bak test.txt && echo "Backup restore..."
+	fi
+else
+	echo "File has removed..."
+	cp test.txt.bak test.txt && echo "Backup restore..."
+fi
+
+5. 시스템 체크 스크립트
+
+#!/bin/bash
+
+while :
+do
+        FILENAME=log_`date '+%y%m%d%H%M%S'`.log
+        echo "1. vmstat =============================" >> $FILENAME
+        vmstat >> $FILENAME
+        echo "2. ps -ef =============================" >> $FILENAME
+        ps -ef >> $FILENAME
+        echo "3. df -h =============================" >> $FILENAME
+        df -h >> $FILENAME
+
+        sleep 10
+done
+
+6. 파일 확장자 일괄변경 프로그래
+#!/bin/bash
+
+echo -n "previous EXT : "
+read EXTOLD
+echo -n "new EXT : "
+read EXTNEW
+
+for FILENAME in `ls *.$EXTOLD`
+do
+        # mv $FILENAME ${FILENAME%*$EXTOLD}$EXTNEW
+        NAME=`echo $FILENAME | awk -F. '{ print $1 }'`
+        mv $FILENAME $NAME.$EXTNEW && echo "$FILENAME changed to $NAME.$EXTNEW"
+done
+
+7. 디스크 확인 프로그램
+#!/bin/bash
+
+while :
+do
+	DF=`df -h | awk '/\/$/{ print $0 }'`
+	DSIZE=`echo $DF | awk '{ print $2 }'`
+	DUSED=`echo $DF | awk '{ print $3 }'`
+	DAVAIL=`echo $DF | awk '{ print $4 }'`
+	DPERCENT=`echo $DF | awk '{ print $5 }' | sed 's/%//'`
+
+	echo "Current State - SIZE:$DSIZE USED:$DUSED AVAILABLE:$DAVAIL %:$DPERCENT%"
+
+	if [ $DPERCENT -gt 10 ]
+	then
+		echo "Disk used percentage is over 10%. now $DPERCENT% used"
+	fi	
+
+	sleep 1
+done
+
+8. 파일 삭제 프로그램
+#!/bin/bash
+
+if [ -d /recycle ]
+then
+	:
+else
+	mkdir /recycle && echo "/recycle created..."
+fi
+
+if [ $# -eq 1 ]
+then
+	if [ "$1" = "-l" ]
+	then
+		echo "/recycle file list"
+		ls -l /recycle | sed '/_path$/d'
+	else
+		mv $1 /recycle
+		pwd > /recycle/$1_path
+	fi
+elif [ $# -eq 2 ]
+then
+	if [ "$1" = "-r" ]
+	then
+		if [ -f /recycle/$2 ]
+		then
+			RECOVERPATH=`cat /recycle/$2_path`
+			mv /recycle/$2 $RECOVERPATH && echo "$2 file recovered..."
+		else
+			echo "$2 file does not exists..."
+		fi
+	else
+		echo "Usage: ./myrm.sh [file]"
+		echo "       ./myrm.sh -l"
+		echo "       ./myrm.sh -r [file]"
+	fi
+else
+	echo "Usage: ./myrm.sh [file]"
+	echo "       ./myrm.sh -l"
+	echo "       ./myrm.sh -r [file]"
+fi
+
+9. 프로세스 종료 스크립트
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: $0 [processname]"
+	exit 1
+fi
+
+
+ps -e > /tmp/processlist
+
+awk '{ print $1":"$4 }' /tmp/processlist | grep $1 > /tmp/processlist2
+
+for PROCESSINFO in `cat /tmp/processlist2`
+do
+	PROCESSPID=`echo $PROCESSINFO | awk -F: '{ print $1 }'`
+	PROCESSNAME=`echo $PROCESSINFO | awk -F: '{ print $2 }'`
+
+	echo "Process PID : $PROCESSPID"
+	echo "Process Name : $PROCESSNAME"
+	echo -n "Select Kill/Terminate/Cancel(K/T/C) : "
+	read ANSWER
+
+	case $ANSWER in
+		k|K) kill -9 $PROCESSPID; echo "Kill signal sent to $PROCESSINFO..." ;;
+		t|T) kill -15 $PROCESSPID; echo "Term signal sent to $PROCESSINFO..." ;;
+		*) echo "Cancel..." ;;
+	esac
+done
+
