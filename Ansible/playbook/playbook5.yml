@@ -1,0 +1,25 @@
+---
+- name: Play for Webersevers to check Webservice
+  hosts: webservers
+  remote_user: user
+  become: yes
+  tasks:
+  - name: ensure httpd services is installed
+    yum: 
+      name: httpd
+      state: latest
+  - name: ensure httpd services is started
+    service:
+      name: httpd
+      state: started
+- name: new contents is in place
+    copy:
+     src: httpd.conf
+     dest: /etc/httpd/conf/
+   notipy:
+     - httpd restart
+  handlers:
+  - name: httpd restart
+    service:
+      name: httpd
+      state: restarted

@@ -1,0 +1,9 @@
+---
+- name: Task for Webservers
+  hosts: webservers
+  remote_user: root
+  gather_facts: false
+  tasks:
+  - name: test connection
+    remote_user: user
+    ping:
