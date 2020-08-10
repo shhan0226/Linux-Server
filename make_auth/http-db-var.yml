@@ -1,0 +1,58 @@
+---
+- name: Deploy Web server
+  hosts: web
+  become: true
+  remote_user: user
+  vars_files:
+    - vars/web_var.yml
+
+  tasks:
+  - name: Install {{ pkg_name }} Package
+    yum: 
+      name: "{{ pkg_name }}"
+      state: latest
+
+  - name: Start the {{ svc_name }} Service
+    service:
+      name: "{{ svc_name }}"
+      state: started
+      enabled: true
+
+  - name: Open the  {{ fw_name }} service
+    firewalld:
+      service: "{{ fw_name }}"
+      permanent: yes
+      immediate: yes
+      state: enabled
+
+  - name: copy index.html
+    copy:
+      src: index.html
+      dest: /var/www/html/
+
+
+
+- name: Deploy DB Server
+  hosts: db
+  become: true
+  vars_files:
+    - vars/db_var.yml
+    
+  tasks:
+  - name: Install {{ pkg_name }} Package
+    yum: 
+      name: "{{ pkg_name }}"
+      state: latest
+
+  - name: Start the {{ svc_name }} Service
+    service:
+      name: "{{ svc_name }}"
+      state: started
+      enabled: true
+
+  - name: Open the  {{ fw_name }} service
+    firewalld:
+      service: "{{ fw_name }}"
+      permanent: yes
+      immediate: yes
+      state: enabled

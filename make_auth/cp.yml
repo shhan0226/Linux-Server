@@ -1,0 +1,9 @@
+---
+- name: copy no sudo pass file
+  hosts: all
+  become: true
+  tasks:
+    - name: copy module
+      copy:
+        src: nopasswd
+        dest: /etc/sudoers.d

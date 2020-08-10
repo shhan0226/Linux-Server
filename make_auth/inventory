@@ -1,0 +1,11 @@
+[web]
+host1
+
+[db]
+host2
+
+[web:vars]
+ansible_user=user
+
+[db:vars]
+ansible_user=user

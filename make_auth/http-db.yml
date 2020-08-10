@@ -1,0 +1,54 @@
+---
+- name: Deploy Web server
+  hosts: web
+  become: true
+  remote_user: user
+  tasks:
+  - name: Install the Package
+    yum: 
+      name: httpd
+      state: latest
+
+  - name: Start the Service
+    service:
+      name: httpd
+      state: started
+      enabled: true
+
+  - name: Open the service
+    firewalld:
+      service: http   
+      permanent: yes
+      immediate: yes
+      state: enabled
+
+  - name: copy index.html
+    copy:
+      src: index.html
+      dest: /var/www/html/
+
+
+
+- name: Deploy DB Server
+  hosts: db
+  become: true
+  tasks:
+  - name: Install the Package
+    yum: 
+      name: 
+        - bash-completion
+        - mariadb-server
+      state: latest
+      
+  - name: Start the Service
+    service:
+      name: mariadb
+      state: started
+      enabled: true
+
+  - name: Open the service
+    firewalld:
+      service: mysql   
+      permanent: yes
+      immediate: yes
+      state: enabled

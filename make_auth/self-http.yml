@@ -1,0 +1,30 @@
+---
+- name: Play for Webersevers to check Webservice
+  hosts: host1
+  remote_user: user
+  become: yes
+  tasks:
+  - name: ensure httpd services is installed
+    yum: 
+      name: httpd
+      state: latest
+
+  - name: fierwalld enable
+    firewalld:
+      service: http
+      permanent: true
+      state: enabled
+
+  - name: reload service firewalld
+    systemd:
+      name: firewalld
+      state: reloaded
+
+  - name: ensure httpd services is started
+    service:
+      name: httpd
+      state: started
+      
+  - name: httpd file write
+    shell: echo "Hello ansible" > /var/www/html/index.html
+    
