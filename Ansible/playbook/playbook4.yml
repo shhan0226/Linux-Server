@@ -1,9 +1,0 @@
----
-- name: Test command module 4
-  hosts: webservers
-  tasks:
-    - name: command 1
-      shell: grep root /etc/shadow
-      ignore_errors: true
-    - name: command 2
-      command: echo hello

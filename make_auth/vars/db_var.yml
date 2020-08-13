@@ -1,3 +1,0 @@
-pkg_name: mariadb-server
-svc_name: mariadb
-fw_name: mysql
