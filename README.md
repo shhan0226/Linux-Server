@@ -16,6 +16,3 @@
 ### ShellProgram
 * 쉘 명령어를 이용한 리눅스 명령어 프로그램
 
-### Ansible
-* Ansible
-* make_auth
